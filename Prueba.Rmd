@@ -1,0 +1,121 @@
+---
+title: "Proyecto vivienda"
+author: "Gonzalo Terry"
+date: "2022-12-21"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+Comenzando instalando los paquetes que se van a utilizar, en este proyecto se va a utilizar el paquete "tidyverse".
+
+```{r cars}
+install.packages("tidyverse")
+library("tidyverse")
+```
+
+Se procede también a leer el archivo ".csv" de los datos
+
+```{r}
+ventas <- read_csv("spain_v_ventas_america.csv")
+```
+
+A continuación se va a estudiar la relación entre varias variables de un conjunto de datos público sobre la venta de vivienda en España
+
+## Relación entre el precio de la vivienda por comunidades y la renta per cápita
+
+Primero de todo se va a crear una nueva tabla con los datos que nos interesan, que en este
+caso son las provincias, su precio medio de vivienda, y su renta per cápita.
+
+```{r}
+tabla1 <- ventas %>%
+  group_by(loc_zone) %>%
+  summarize(renta_media = mean(renta_media_prov), precio_medio = mean(price))
+
+tabla1
+
+```
+A continuación vamos a realizar la representación gráfica. Vamos a realizar un gráfico de dispersión colocando en el eje x al precio medio de la vivienda por provincia, y en el
+eje y la renta per cápita de la misma provincia.
+
+```{r}
+ggplot(data = tabla1, aes(x = precio_medio, y = renta_media)) + geom_point()
+```
+
+A simple vista podemos intuir que los puntos siguen una posible tendencia lineal, vamos a
+calcular la correlación estadística.
+
+```{r}
+tabla1 %>%
+  summarize(correlacion = cor(precio_medio, renta_media))
+
+```
+Obtenemos una correlación de 0.465, no es extremadamente fuerte, pero en la tabla vemos
+que hay un precio medio de vivienda que se aleja de la tendencia, este es el punto del
+precio medio de vivienda en las Islas Baleares, ya que hay en proporción mas casa en venta
+de alta gama y lujosas comparado con el resto de las provincias. 
+\\
+\\
+Vamos a quitar este punto y realizar los mismo pasos que antes.
+\\
+\\
+Empezamos por definir una nueva tabla, quitando la fila de las Islas Baleares.
+
+```{r}
+tabla2 <- tabla1[-11,]
+tabla2
+```
+
+Ahora calculamos de nuevo la correlacion.
+
+```{r}
+tabla2 %>%
+  summarize(correlacion = cor(precio_medio, renta_media))
+```
+
+<p> Ahora se obtiene una correlación estadística mucho mas alta, de aproximadamente 0.726.</p>
+
+<p>Con estos resultamos no podemos afirmar que haya causalidad entre la renta media de una provincia y el precio medio de la vivienda en dicha provincia.</p>
+
+<p>Lo que podemos afirmar con esta moderada correlación es que si que hay una tendencia entre estas dos variables, por lo menos, en el mercado español, ya que esta tendencia podría variar dependiendo del modelo económico de cada país, a una corralación más floja o más fuerte.</p>
+
+##Relación entre la provincia y le tipo de vivienda
+
+Ahora podemos analizar la tendencia entre las distintas provincias de España y que tipo de vivienda se prefiere en cada una de las provincias. Con esto podríamos intuir cuan interesante es construir un tipo de vivienda en cada una de las provincias.
+
+Vamos a comenzar por hacer una tabla auxiliar con los datos que nos interesan para abordar este problema, que es el número de cada tipo de vivienda que hay en cada provincia.
+
+```{r}
+tabla2 <- ventas %>%
+  select(house_type, loc_zone) %>%
+  group_by(loc_zone)%>%
+  count(house_type)
+```
+
+Ahora vamos a representar estos datos en un gráfico del tipo "ggplot2".
+
+```{r}
+ggplot(data=tabla2, aes(y = n, x=house_type)) + geom_bar(stat = 'identity', fill = 'blue') + facet_wrap(~loc_zone) + theme(axis.text.x= element_text(angle = 90))
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
